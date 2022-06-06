@@ -21,32 +21,32 @@ class KDFConfig:
 
 
 class Crypto:
-    def _encrypt(self, plaintext: bytes) -> bytes:
+    def encrypt_bytes(self, plaintext: bytes) -> bytes:
         raise NotImplementedError(
             f"{self.__class__.__name__} must implement an encrypt method."
         )
 
-    def _decrypt(self, ciphertext: bytes) -> bytes:
+    def decrypt_bytes(self, ciphertext: bytes) -> bytes:
         raise NotImplementedError(
             f"{self.__class__.__name__} must implement a decrypt method."
         )
 
     def encrypts(self, plaintext: str) -> str:
-        ciphertext = self._encrypt(plaintext.encode())
+        ciphertext = self.encrypt_bytes(plaintext.encode())
         return base64.b16encode(ciphertext).decode()
 
     def decrypts(self, ciphertext: str) -> str:
         decoded_ciphertext = base64.b16decode(ciphertext.encode())
-        plaintext = self._decrypt(decoded_ciphertext)
+        plaintext = self.decrypt_bytes(decoded_ciphertext)
         return plaintext.decode()
 
     def encrypt(self, plaintext: bytes, ciphertext: BinaryIO) -> None:
-        encrypted_data = self._encrypt(plaintext)
+        encrypted_data = self.encrypt_bytes(plaintext)
         ciphertext.write(encrypted_data)
 
     def decrypt(self, ciphertext: BinaryIO) -> bytes:
         encrypted_data = ciphertext.read()
-        return self._decrypt(encrypted_data)
+        return self.decrypt_bytes(encrypted_data)
 
 
 class SymmetricCrypto(Crypto):
@@ -79,7 +79,7 @@ class SymmetricCrypto(Crypto):
         )
         return base64.urlsafe_b64encode(kdf.derive(self.password))
 
-    def _encrypt(self, plaintext: bytes) -> bytes:
+    def encrypt_bytes(self, plaintext: bytes) -> bytes:
         config = self._get_config(self.version)
         salt = secrets.token_bytes(nbytes=config.salt_length)
         key = self._derive_key(salt)
@@ -87,7 +87,7 @@ class SymmetricCrypto(Crypto):
         encrypted = fernet.encrypt(plaintext)
         return b"v1::" + salt + encrypted
 
-    def _decrypt(self, ciphertext: bytes) -> bytes:
+    def decrypt_bytes(self, ciphertext: bytes) -> bytes:
         version, ciphertext = ciphertext.split(b"::", 1)
         kdf_config = self._get_config(version)
         salt = ciphertext[: kdf_config.salt_length]

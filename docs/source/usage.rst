@@ -13,6 +13,14 @@ symmetrically encrypt/decrypt the plaintext.
 
     A symmetric crypto class, based on Fernet
 
+    .. py:method:: encrypt_bytes(self, plaintext: bytes) -> bytes
+
+       Encrypt bytes
+
+    .. py:method:: decrypt_bytes(self, ciphertext: bytes) -> bytes
+
+       Decrypt bytes, that were encrypted by this class
+
     .. py:method:: encrypts(self, plaintext: str) -> str
 
        Encrypt a string
@@ -21,11 +29,11 @@ symmetrically encrypt/decrypt the plaintext.
 
        Decrypt a string, that was encrypted by this class
 
-    .. py:method:: encrypt(self, plaintext_path: Path, ciphertext_path: Path) -> None
+    .. py:method:: encrypt(self, plaintext: bytes, ciphertext: BinaryIO) -> None
 
        Encrypt a file
 
-    .. py:method:: decrypt(self, ciphertext_path: Path, plaintext_path: Path) -> None
+    .. py:method:: decrypt(self, ciphertext: BinaryIO) -> bytes
 
        Decrypt a file
 

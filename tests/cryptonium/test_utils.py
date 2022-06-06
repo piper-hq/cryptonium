@@ -24,6 +24,15 @@ def test_symmetric_same_password_decrypts(plaintext):
     assert crypto_2.decrypts(ciphertext) == plaintext
 
 
+@pytest.mark.parametrize("plaintext", TEST_MESSAGES)
+def test_symmetric_same_password_decrypt_bytes(plaintext):
+    password = secrets.token_bytes(nbytes=32)
+    crypto_1 = utils.SymmetricCrypto(password)
+    crypto_2 = utils.SymmetricCrypto(password)
+    ciphertext = crypto_1.encrypt_bytes(plaintext.encode())
+    assert crypto_2.decrypt_bytes(ciphertext) == plaintext.encode()
+
+
 def test_symmetric_wrong_password_fails():
     crypto_1 = utils.SymmetricCrypto(b"password")
     crypto_2 = utils.SymmetricCrypto(b"another_password")

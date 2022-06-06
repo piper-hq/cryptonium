@@ -9,6 +9,10 @@ The format is based on `Keep a Changelog`_, and this project adheres to `Semanti
 `Unreleased`_
 -------------
 
+Added
+^^^^^
+* Exposed the methods that encrypt/decrypt bytes
+
 Changed
 ^^^^^^^
 * encrypt/decrypt are expecting a binary IO instead of a path
