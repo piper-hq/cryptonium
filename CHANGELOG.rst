@@ -9,6 +9,10 @@ The format is based on `Keep a Changelog`_, and this project adheres to `Semanti
 `Unreleased`_
 -------------
 
+Changed
+^^^^^^^
+* encrypt/decrypt are expecting a binary IO instead of a path
+
 `0.1.0`_ - 2022-05-30
 ---------------------
 

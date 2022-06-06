@@ -1,5 +1,5 @@
-import filecmp
 import secrets
+from io import BytesIO
 from pathlib import Path
 
 import pytest
@@ -34,49 +34,30 @@ def test_symmetric_wrong_password_fails():
 def test_symmetric_encrypt_file():
     password = secrets.token_bytes(nbytes=32)
     crypto = utils.SymmetricCrypto(password)
+    message = b"secret_message"
 
-    plaintext_path = DATA_PATH.joinpath("plaintext_file")
     ciphertext_path = DATA_PATH.joinpath("ciphertext_file")
-    decrypted_path = DATA_PATH.joinpath("decrypted_file")
 
     # TODO: [drop py37] use missing_ok=True
     if ciphertext_path.exists():
         ciphertext_path.unlink()
-    if decrypted_path.exists():
-        decrypted_path.unlink()
-    crypto.encrypt(plaintext_path, ciphertext_path)
-    crypto.decrypt(ciphertext_path, decrypted_path)
-    assert filecmp.cmp(plaintext_path, decrypted_path, shallow=False)
+    with open(ciphertext_path, "wb") as target:
+        crypto.encrypt(message, target)
+    with open(ciphertext_path, "rb") as source:
+        decrypted_message = crypto.decrypt(source)
     ciphertext_path.unlink()
-    decrypted_path.unlink()
+    assert decrypted_message == message
 
 
-def test_symmetric_encrypt_file_permissions():
+def test_symmetric_encrypt_inmemory_file():
     password = secrets.token_bytes(nbytes=32)
     crypto = utils.SymmetricCrypto(password)
+    message = b"secret_message"
 
-    plaintext_path = DATA_PATH.joinpath("plaintext_file")
-    missing_path = DATA_PATH.joinpath("missing_path")
-    ciphertext_path = DATA_PATH.joinpath("ciphertext_file")
-    decrypted_path = DATA_PATH.joinpath("decrypted_file")
+    ciphertext_io = BytesIO()
 
-    # TODO: [drop py37] use missing_ok=True
-    if ciphertext_path.exists():
-        ciphertext_path.unlink()
-    if decrypted_path.exists():
-        decrypted_path.unlink()
-    if missing_path.exists():
-        missing_path.unlink()
-    assert pytest.raises(PermissionError, crypto.encrypt, missing_path, decrypted_path)
+    crypto.encrypt(message, ciphertext_io)
+    ciphertext_io.seek(0)
+    decrypted_message = crypto.decrypt(ciphertext_io)
 
-    crypto.encrypt(plaintext_path, ciphertext_path)
-    assert pytest.raises(
-        PermissionError, crypto.encrypt, plaintext_path, ciphertext_path
-    )
-
-    crypto.decrypt(ciphertext_path, decrypted_path)
-    assert pytest.raises(
-        PermissionError, crypto.decrypt, ciphertext_path, decrypted_path
-    )
-    ciphertext_path.unlink()
-    decrypted_path.unlink()
+    assert decrypted_message == message

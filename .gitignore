@@ -9,7 +9,6 @@ poetry.lock
 
 # test artifacts
 tests/data/ciphertext_file
-tests/data/decrypted_file
 
 # Distribution / packaging
 docs/build/

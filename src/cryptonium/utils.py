@@ -1,9 +1,7 @@
 import base64
-import os
 import secrets
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any
+from typing import Any, BinaryIO
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
@@ -23,17 +21,6 @@ class KDFConfig:
 
 
 class Crypto:
-    @staticmethod
-    def _check_permissions(source: Path, target: Path) -> None:
-        source = source.absolute()
-        if not os.access(source, os.R_OK):
-            raise PermissionError(f"{source} is not readable")
-        target = target.absolute()
-        if not os.access(target.parent, os.W_OK, dir_fd=True):
-            raise PermissionError(f"{target} is not writeable")
-        if target.exists():
-            raise PermissionError(f"{target} already exists")
-
     def _encrypt(self, plaintext: bytes) -> bytes:
         raise NotImplementedError(
             f"{self.__class__.__name__} must implement an encrypt method."
@@ -53,21 +40,13 @@ class Crypto:
         plaintext = self._decrypt(decoded_ciphertext)
         return plaintext.decode()
 
-    def encrypt(self, plaintext_path: Path, ciphertext_path: Path) -> None:
-        self._check_permissions(plaintext_path, ciphertext_path)
-        with open(plaintext_path, "rb") as source:
-            data = source.read()
-        encrypted_data = self._encrypt(data)
-        with open(ciphertext_path, "wb") as target:
-            target.write(encrypted_data)
+    def encrypt(self, plaintext: bytes, ciphertext: BinaryIO) -> None:
+        encrypted_data = self._encrypt(plaintext)
+        ciphertext.write(encrypted_data)
 
-    def decrypt(self, ciphertext_path: Path, plaintext_path: Path) -> None:
-        self._check_permissions(ciphertext_path, plaintext_path)
-        with open(ciphertext_path, "rb") as source:
-            encrypted_data = source.read()
-        data = self._decrypt(encrypted_data)
-        with open(plaintext_path, "wb") as target:
-            target.write(data)
+    def decrypt(self, ciphertext: BinaryIO) -> bytes:
+        encrypted_data = ciphertext.read()
+        return self._decrypt(encrypted_data)
 
 
 class SymmetricCrypto(Crypto):
