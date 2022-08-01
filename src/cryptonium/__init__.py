@@ -1,3 +1,3 @@
-from cryptonium.utils import SymmetricCrypto
+from cryptonium.utils import SaltedSymmetricCrypto, SymmetricCrypto
 
-__all__ = ["SymmetricCrypto"]
+__all__ = ["SaltedSymmetricCrypto", "SymmetricCrypto"]

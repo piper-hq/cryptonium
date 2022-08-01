@@ -9,6 +9,10 @@ The format is based on `Keep a Changelog`_, and this project adheres to `Semanti
 `Unreleased`_
 -------------
 
+Changed
+^^^^^^^
+* By default, symmetric encryption is unsalted
+
 `0.2.0`_ - 2022-06-06
 ---------------------
 

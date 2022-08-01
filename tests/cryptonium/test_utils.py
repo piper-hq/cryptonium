@@ -16,33 +16,45 @@ DATA_PATH = Path(__file__).resolve().parent.joinpath("data/")
 
 
 @pytest.mark.parametrize("plaintext", TEST_MESSAGES)
-def test_symmetric_same_password_decrypts(plaintext):
+@pytest.mark.parametrize(
+    "crypto_class", [utils.SaltedSymmetricCrypto, utils.SymmetricCrypto]
+)
+def test_symmetric_same_password_decrypts(crypto_class, plaintext):
     password = secrets.token_bytes(nbytes=32)
-    crypto_1 = utils.SymmetricCrypto(password)
-    crypto_2 = utils.SymmetricCrypto(password)
+    crypto_1 = crypto_class(password)
+    crypto_2 = crypto_class(password)
     ciphertext = crypto_1.encrypts(plaintext)
     assert crypto_2.decrypts(ciphertext) == plaintext
 
 
 @pytest.mark.parametrize("plaintext", TEST_MESSAGES)
-def test_symmetric_same_password_decrypt_bytes(plaintext):
+@pytest.mark.parametrize(
+    "crypto_class", [utils.SaltedSymmetricCrypto, utils.SymmetricCrypto]
+)
+def test_symmetric_same_password_decrypt_bytes(crypto_class, plaintext):
     password = secrets.token_bytes(nbytes=32)
-    crypto_1 = utils.SymmetricCrypto(password)
-    crypto_2 = utils.SymmetricCrypto(password)
+    crypto_1 = crypto_class(password)
+    crypto_2 = crypto_class(password)
     ciphertext = crypto_1.encrypt_bytes(plaintext.encode())
     assert crypto_2.decrypt_bytes(ciphertext) == plaintext.encode()
 
 
-def test_symmetric_wrong_password_fails():
-    crypto_1 = utils.SymmetricCrypto(b"password")
-    crypto_2 = utils.SymmetricCrypto(b"another_password")
+@pytest.mark.parametrize(
+    "crypto_class", [utils.SaltedSymmetricCrypto, utils.SymmetricCrypto]
+)
+def test_symmetric_wrong_password_fails(crypto_class):
+    crypto_1 = crypto_class(b"password")
+    crypto_2 = crypto_class(b"another_password")
     ciphertext = crypto_1.encrypts("plaintext")
     assert pytest.raises(InvalidToken, crypto_2.decrypts, ciphertext)
 
 
-def test_symmetric_encrypt_file():
+@pytest.mark.parametrize(
+    "crypto_class", [utils.SaltedSymmetricCrypto, utils.SymmetricCrypto]
+)
+def test_symmetric_encrypt_file(crypto_class):
     password = secrets.token_bytes(nbytes=32)
-    crypto = utils.SymmetricCrypto(password)
+    crypto = crypto_class(password)
     message = b"secret_message"
 
     ciphertext_path = DATA_PATH.joinpath("ciphertext_file")
@@ -58,9 +70,12 @@ def test_symmetric_encrypt_file():
     assert decrypted_message == message
 
 
-def test_symmetric_encrypt_inmemory_file():
+@pytest.mark.parametrize(
+    "crypto_class", [utils.SaltedSymmetricCrypto, utils.SymmetricCrypto]
+)
+def test_symmetric_encrypt_inmemory_file(crypto_class):
     password = secrets.token_bytes(nbytes=32)
-    crypto = utils.SymmetricCrypto(password)
+    crypto = crypto_class(password)
     message = b"secret_message"
 
     ciphertext_io = BytesIO()

@@ -49,7 +49,7 @@ class Crypto:
         return self.decrypt_bytes(encrypted_data)
 
 
-class SymmetricCrypto(Crypto):
+class SaltedSymmetricCrypto(Crypto):
     def __init__(self, password: bytes) -> None:
         self.password = password
         self.version = LATEST_PROTOCOL
@@ -95,3 +95,51 @@ class SymmetricCrypto(Crypto):
         key = self._derive_key(salt, version=version)
         fernet = Fernet(key)
         return fernet.decrypt(encrypted_message)
+
+
+class SymmetricCrypto(Crypto):
+    supported_versions = {LATEST_PROTOCOL}
+
+    def __init__(self, password: bytes) -> None:
+        self.password = password
+        self.version = LATEST_PROTOCOL
+        self.keys = {
+            version: self._derive_key(version) for version in self.supported_versions
+        }
+
+    @staticmethod
+    def _get_config(version: bytes) -> KDFConfig:
+        if version == LATEST_PROTOCOL:
+            return KDFConfig(
+                salt_length=0,
+                key_length=32,
+                iterations=1_000_000,
+                hash_function=hashes.SHA256(),
+                backend=default_backend(),
+            )
+
+        raise ValueError("Unsupported protocol version")
+
+    def _derive_key(self, version: bytes = None) -> bytes:
+        kdf_config = self._get_config(version or self.version)
+
+        kdf = PBKDF2HMAC(
+            algorithm=kdf_config.hash_function,
+            length=kdf_config.key_length,
+            salt=b"",
+            iterations=kdf_config.iterations,
+            backend=kdf_config.backend,
+        )
+        return base64.urlsafe_b64encode(kdf.derive(self.password))
+
+    def encrypt_bytes(self, plaintext: bytes) -> bytes:
+        key = self.keys[self.version]
+        fernet = Fernet(key)
+        encrypted = fernet.encrypt(plaintext)
+        return LATEST_PROTOCOL + b"::" + encrypted
+
+    def decrypt_bytes(self, ciphertext: bytes) -> bytes:
+        version, ciphertext = ciphertext.split(b"::", 1)
+        key = self.keys[version]
+        fernet = Fernet(key)
+        return fernet.decrypt(ciphertext)
