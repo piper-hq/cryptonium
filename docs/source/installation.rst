@@ -7,7 +7,7 @@ The easiest way is to use `poetry`_ to manage your dependencies and add *crypton
 .. code-block:: toml
 
     [tool.poetry.dependencies]
-    cryptonium = "^0.2.0"
+    cryptonium = "^0.3.0"
 
 
 .. _poetry: https://python-poetry.org/
