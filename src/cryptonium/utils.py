@@ -56,7 +56,7 @@ class SymmetricCrypto(Crypto):
 
     @staticmethod
     def _get_config(version: bytes) -> KDFConfig:
-        if version == b"v1":
+        if version == LATEST_PROTOCOL:
             return KDFConfig(
                 salt_length=16,
                 key_length=32,
@@ -85,7 +85,7 @@ class SymmetricCrypto(Crypto):
         key = self._derive_key(salt)
         fernet = Fernet(key)
         encrypted = fernet.encrypt(plaintext)
-        return b"v1::" + salt + encrypted
+        return LATEST_PROTOCOL + b"::" + salt + encrypted
 
     def decrypt_bytes(self, ciphertext: bytes) -> bytes:
         version, ciphertext = ciphertext.split(b"::", 1)
