@@ -1,9 +1,10 @@
 ["$globals"]
 shell = "bash"
-vars = [
-    { poetry_extra = "--remove-untracked" },
-    { runner = "poetry run" },
-]
+version = 4
+
+["$globals".vars]
+poetry_extra = "--remove-untracked"
+runner = "poetry run"
 
 [all]
 alias = "install"
